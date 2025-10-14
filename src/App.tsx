@@ -28,6 +28,7 @@ import RiderOverview from "./pages/RiderOverview";
 import EnhancedRiderOverview from "./pages/EnhancedRiderOverview";
 import RunsheetDetails from "./pages/RunsheetDetails";
 import RiderOnboardingReview from "./pages/RiderOnboardingReview";
+import RiderOnboardingQueue from "./pages/RiderOnboardingQueue";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +57,8 @@ const App = () => (
             <Route path="/rider-management" element={<RiderManagementDashboard />} />
             <Route path="/rider-onboarding" element={<RiderOnboarding />} />
             <Route path="/rider-onboarding-review" element={<RiderOnboardingReview />} />
-            <Route path="/rider-overview" element={<EnhancedRiderOverview />} />
+              <Route path="/rider-overview" element={<EnhancedRiderOverview />} />
+              <Route path="/rider-onboarding-queue" element={<RiderOnboardingQueue />} />
             <Route path="/runsheets/:id" element={<RunsheetDetails />} />
             <Route path="/create-runsheet" element={<CreateRunsheet />} />
             <Route path="/cash-collection" element={<CashCollectionManagement />} />

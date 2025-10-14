@@ -20,9 +20,9 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { title: "Rider Overview", url: "/rider-overview", icon: Truck },
+  { title: "Rider Overview", url: "/rider-overview", icon: Users },
   { title: "Runsheet Management", url: "/runsheet-management", icon: FileText },
-  { title: "Rider Onboarding", url: "/rider-onboarding-review", icon: UserPlus },
+  { title: "Rider Onboarding", url: "/rider-onboarding-queue", icon: UserPlus },
   { title: "Cash Collection", url: "/cash-collection", icon: IndianRupee },
   { title: "Orders", url: "/orders", icon: Package },
   { title: "Analytics", url: "/reports", icon: BarChart3 },
