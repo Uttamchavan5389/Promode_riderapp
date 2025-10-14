@@ -1,17 +1,11 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -19,339 +13,390 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Phone, MapPin, Clock, Package, DollarSign, CheckCircle } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  User,
+  Calendar,
+  DollarSign,
+  Package,
+  Phone,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { StatusBadge } from "@/components/StatusBadge";
 
 const RunsheetDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [collectedAmount, setCollectedAmount] = useState("");
-  const [paymentMode, setPaymentMode] = useState("Cash");
+  const [paymentMode, setPaymentMode] = useState("");
+  const [invalidOrderDialog, setInvalidOrderDialog] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [invalidReason, setInvalidReason] = useState("");
+  const [invalidNotes, setInvalidNotes] = useState("");
 
   // Dummy data
-  const runsheet = {
+  const runsheetData = {
     id: "RS-2025-001",
-    rider: { name: "Rajesh Kumar (RD001)", phone: "+91 9876543210" },
-    zone: "Sector 21",
-    departure: "2025-01-11 at 09:30 AM",
-    created: "2025-01-11 09:15 AM",
-    totalOrders: 5,
-    delivered: 2,
-    prepaidTotal: 3300,
-    codExpected: 2800,
-    codCollected: 850,
+    status: "in_progress",
+    rider: { name: "Suresh Kumar", id: "R001", phone: "+91 98111 11111" },
+    date: "2025-01-14",
+    orders: [
+      {
+        id: "ORD-001",
+        customer_name: "Rahul Verma",
+        address: "123 MG Road, Delhi",
+        pincode: "110001",
+        payment_mode: "COD",
+        delivery_status: "Delivered",
+        amount: 2400,
+      },
+      {
+        id: "ORD-002",
+        customer_name: "Priya Sharma",
+        address: "456 Park Street, Delhi",
+        pincode: "110002",
+        payment_mode: "COD",
+        delivery_status: "Delivered",
+        amount: 3200,
+      },
+      {
+        id: "ORD-003",
+        customer_name: "Amit Patel",
+        address: "789 Ring Road, Delhi",
+        pincode: "110003",
+        payment_mode: "Online",
+        delivery_status: "Delivered",
+        amount: 1800,
+      },
+      {
+        id: "ORD-004",
+        customer_name: "Sneha Gupta",
+        address: "321 Mall Road, Delhi",
+        pincode: "110004",
+        payment_mode: "COD",
+        delivery_status: "Pending",
+        amount: 4500,
+      },
+    ],
   };
 
-  const orders = [
-    {
-      id: "ORD-2025-1001",
-      customer: "Anita Sharma",
-      phone: "+91 9988776655",
-      items: "Fresh Vegetables (2kg), Fruits (1kg)",
-      address: "B-45, Sector 21, Gurgaon - 122001",
-      amount: 850,
-      payment: "COD",
-      status: "Delivered",
-      deliveryTime: "10:15 AM",
-    },
-    {
-      id: "ORD-2025-1002",
-      customer: "Rahul Verma",
-      phone: "+91 9123456789",
-      items: "Organic Dal (1kg), Rice (5kg)",
-      address: "C-12, Sector 21, Gurgaon - 122001",
-      amount: 1200,
-      payment: "PREPAID",
-      status: "Delivered",
-      deliveryTime: "10:45 AM",
-    },
-    {
-      id: "ORD-2025-1003",
-      customer: "Meera Patel",
-      phone: "+91 9765432109",
-      items: "Farm Fresh Milk (2L), Eggs (12)",
-      address: "D-78, Sector 22, Gurgaon - 122002",
-      amount: 450,
-      payment: "COD",
-      status: "Out for Delivery",
-      deliveryTime: "-",
-    },
-    {
-      id: "ORD-2025-1004",
-      customer: "Sunil Kapoor",
-      phone: "+91 9654321098",
-      items: "Honey (500g), Ghee (1kg)",
-      address: "E-34, Sector 21, Gurgaon - 122001",
-      amount: 2100,
-      payment: "PREPAID",
-      status: "Out for Delivery",
-      deliveryTime: "-",
-    },
-    {
-      id: "ORD-2025-1005",
-      customer: "Kavita Singh",
-      phone: "+91 9543210987",
-      items: "Seasonal Fruits Mix (3kg)",
-      address: "F-56, Sector 23, Gurgaon - 122003",
-      amount: 1500,
-      payment: "COD",
-      status: "Assigned",
-      deliveryTime: "-",
-    },
-  ];
+  const expectedCOD = runsheetData.orders
+    .filter((o) => o.payment_mode === "COD" && o.delivery_status === "Delivered")
+    .reduce((sum, o) => sum + o.amount, 0);
 
-  const handleCloseRunsheet = () => {
-    if (!collectedAmount) {
+  const expectedTotal = runsheetData.orders
+    .filter((o) => o.delivery_status === "Delivered")
+    .reduce((sum, o) => sum + o.amount, 0);
+
+  const handleMarkInvalid = (order: any) => {
+    setSelectedOrder(order);
+    setInvalidOrderDialog(true);
+  };
+
+  const handleSubmitInvalid = () => {
+    if (!invalidReason) {
       toast({
-        title: "Error",
-        description: "Please enter the collected amount",
+        title: "Reason Required",
+        description: "Please select a reason for marking the order as invalid",
         variant: "destructive",
       });
       return;
     }
 
     toast({
-      title: "Runsheet Closed",
-      description: `Runsheet ${id} has been closed successfully`,
+      title: "Order Marked Invalid",
+      description: `${selectedOrder.id} has been marked as invalid and moved to review queue`,
     });
-    setCloseDialogOpen(false);
-    navigate("/runsheets");
+    setInvalidOrderDialog(false);
+    setInvalidReason("");
+    setInvalidNotes("");
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      Delivered: "default",
-      "Out for Delivery": "secondary",
-      Assigned: "outline",
-    };
-    return variants[status as keyof typeof variants] || "outline";
+  const handleVerifyCollection = () => {
+    if (!collectedAmount || !paymentMode) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter collected amount and payment mode",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const collected = parseFloat(collectedAmount);
+    const difference = Math.abs(expectedCOD - collected);
+
+    if (difference > 0) {
+      toast({
+        title: "Collection Mismatch",
+        description: `Difference of ₹${difference}. Please verify before proceeding.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Collection Verified",
+      description: `₹${collected} verified successfully`,
+    });
+  };
+
+  const handleSaveRunsheet = () => {
+    toast({
+      title: "Runsheet Saved",
+      description: "All changes have been saved successfully",
+    });
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card sticky top-0 z-10 shadow-sm">
+    <div className="min-h-screen bg-muted/30">
+      <header className="bg-card border-b sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/runsheets")}>
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Runsheet Details</h1>
-                <p className="text-sm text-muted-foreground">{id}</p>
+                <h1 className="text-2xl font-bold text-foreground">{runsheetData.id}</h1>
+                <p className="text-sm text-muted-foreground">Runsheet Details & Verification</p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Phone className="h-4 w-4 mr-2" />
-                Call Rider
-              </Button>
-              <Button variant="outline" size="sm">
-                Notify Rider
-              </Button>
-              <Button variant="outline" size="sm">
-                Reassign Rider
-              </Button>
-              <Button size="sm" onClick={() => setCloseDialogOpen(true)}>
-                Close Runsheet
-              </Button>
+            <div className="flex items-center gap-3">
+              <div className="text-right mr-3">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">{runsheetData.rider.name}</span>
+                  <span className="text-muted-foreground">({runsheetData.rider.id})</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>{runsheetData.date}</span>
+                </div>
+              </div>
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                In Progress
+              </Badge>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Orders</p>
-                  <p className="text-2xl font-bold text-foreground">{runsheet.totalOrders}</p>
-                </div>
-                <Package className="h-8 w-8 text-primary opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Delivered</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {runsheet.delivered}/{runsheet.totalOrders}
-                  </p>
-                </div>
-                <CheckCircle className="h-8 w-8 text-green-600 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Prepaid Total</p>
-                  <p className="text-2xl font-bold text-blue-600">₹{runsheet.prepaidTotal.toLocaleString()}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-blue-600 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">COD Expected</p>
-                  <p className="text-2xl font-bold text-amber-600">₹{runsheet.codExpected.toLocaleString()}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-amber-600 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Runsheet Information */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <h2 className="text-lg font-bold text-foreground mb-4">Runsheet Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex items-start gap-3">
-                <Phone className="h-5 w-5 text-primary mt-1" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Rider</p>
-                  <p className="font-medium text-foreground">{runsheet.rider.name}</p>
-                  <p className="text-sm text-muted-foreground">{runsheet.rider.phone}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-primary mt-1" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Zone</p>
-                  <p className="font-medium text-foreground">{runsheet.zone}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-primary mt-1" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Departure</p>
-                  <p className="font-medium text-foreground">{runsheet.departure}</p>
-                  <p className="text-xs text-muted-foreground">Created: {runsheet.created}</p>
-                </div>
-              </div>
-            </div>
+      <main className="container mx-auto px-6 py-8 space-y-6">
+        {/* Orders Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Order List</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>Customer Name</TableHead>
+                  <TableHead>Address / Pincode</TableHead>
+                  <TableHead>Payment Mode</TableHead>
+                  <TableHead>Delivery Status</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {runsheetData.orders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">{order.id}</TableCell>
+                    <TableCell>{order.customer_name}</TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>{order.address}</div>
+                        <div className="text-muted-foreground">{order.pincode}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={order.payment_mode === "COD" ? "outline" : "secondary"}>
+                        {order.payment_mode}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={order.delivery_status as any} />
+                    </TableCell>
+                    <TableCell className="font-semibold">₹{order.amount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleMarkInvalid(order)}
+                      >
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Mark Invalid
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 
-        {/* Orders List */}
+        {/* Cash Collection Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Cash Collection & Verification
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label>Expected COD Amount</Label>
+                <div className="text-2xl font-bold text-primary mt-2">
+                  ₹{expectedCOD.toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <Label>Collected Amount</Label>
+                <Input
+                  type="number"
+                  placeholder="Enter collected amount"
+                  value={collectedAmount}
+                  onChange={(e) => setCollectedAmount(e.target.value)}
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <Label>Payment Mode</Label>
+                <Select value={paymentMode} onValueChange={setPaymentMode}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="partial">Partial (Cash + Online)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {collectedAmount && expectedCOD !== parseFloat(collectedAmount) && (
+              <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                <span className="text-sm text-yellow-800">
+                  Difference: ₹{Math.abs(expectedCOD - parseFloat(collectedAmount)).toLocaleString()}
+                  {" - "}Please verify before proceeding
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Summary Footer */}
         <Card>
           <CardContent className="pt-6">
-            <h2 className="text-lg font-bold text-foreground mb-4">Orders ({orders.length})</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Order ID</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Customer</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Items</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Address</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Amount</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Payment</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Delivery Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.id} className="border-b hover:bg-muted/50 transition-colors">
-                      <td className="py-4 px-4">
-                        <p className="font-medium text-foreground">{order.id}</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="font-medium text-foreground">{order.customer}</p>
-                        <p className="text-sm text-muted-foreground">{order.phone}</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm text-foreground">{order.items}</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm text-foreground">{order.address}</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="font-medium text-foreground">₹{order.amount}</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <Badge variant={order.payment === "COD" ? "secondary" : "default"}>
-                          {order.payment}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-4">
-                        <Badge variant={getStatusBadge(order.status) as any}>{order.status}</Badge>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm text-foreground">{order.deliveryTime}</p>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid grid-cols-4 gap-6 mb-6">
+              <div>
+                <Label className="text-muted-foreground">Total Orders</Label>
+                <div className="text-xl font-bold mt-1">{runsheetData.orders.length}</div>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Expected Collection</Label>
+                <div className="text-xl font-bold mt-1">₹{expectedTotal.toLocaleString()}</div>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Expected COD</Label>
+                <div className="text-xl font-bold mt-1">₹{expectedCOD.toLocaleString()}</div>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Collected</Label>
+                <div className="text-xl font-bold text-green-600 mt-1">
+                  ₹{collectedAmount ? parseFloat(collectedAmount).toLocaleString() : "0"}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => navigate(-1)}>
+                <XCircle className="h-4 w-4 mr-2" />
+                Close
+              </Button>
+              <Button variant="outline" onClick={handleSaveRunsheet}>
+                <Package className="h-4 w-4 mr-2" />
+                Save
+              </Button>
+              <Button onClick={handleVerifyCollection}>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Verify & Complete
+              </Button>
             </div>
           </CardContent>
         </Card>
       </main>
 
-      {/* Close Runsheet Dialog */}
-      <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+      {/* Invalid Order Dialog */}
+      <Dialog open={invalidOrderDialog} onOpenChange={setInvalidOrderDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Close Runsheet</DialogTitle>
+            <DialogTitle>Mark Order as Invalid</DialogTitle>
+            <DialogDescription>
+              {selectedOrder && `Order ID: ${selectedOrder.id}`}
+            </DialogDescription>
           </DialogHeader>
+
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">Expected COD Collection</Label>
-              <p className="text-lg font-bold text-foreground">₹{runsheet.codExpected}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">COD Collected from Delivered Orders</Label>
-              <p className="text-lg font-bold text-green-600">₹{runsheet.codCollected}</p>
-            </div>
-            <div>
-              <Label htmlFor="collected-amount">Actual Amount Collected *</Label>
-              <Input
-                id="collected-amount"
-                type="number"
-                placeholder="Enter collected amount"
-                value={collectedAmount}
-                onChange={(e) => setCollectedAmount(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="payment-mode">Payment Mode</Label>
-              <Select value={paymentMode} onValueChange={setPaymentMode}>
-                <SelectTrigger id="payment-mode">
-                  <SelectValue />
+              <Label>Reason</Label>
+              <Select value={invalidReason} onValueChange={setInvalidReason}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select reason" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Cash">Cash</SelectItem>
-                  <SelectItem value="UPI">UPI</SelectItem>
-                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="customer_cancelled">Customer Cancelled</SelectItem>
+                  <SelectItem value="wrong_address">Wrong Address</SelectItem>
+                  <SelectItem value="damaged_item">Damaged Item</SelectItem>
+                  <SelectItem value="payment_issue">Payment Issue</SelectItem>
+                  <SelectItem value="others">Others</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label>Additional Notes</Label>
+              <Textarea
+                placeholder="Enter any additional details..."
+                value={invalidNotes}
+                onChange={(e) => setInvalidNotes(e.target.value)}
+              />
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setInvalidOrderDialog(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleSubmitInvalid}>
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Mark Invalid
+              </Button>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCloseDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCloseRunsheet}>Close Runsheet</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
