@@ -125,13 +125,13 @@ const RiderManagementDashboard = () => {
               <p className="text-sm text-muted-foreground">Monitor and manage delivery riders</p>
             </div>
             <div className="flex gap-3">
-              <Link to="/rider-onboarding">
+              <Link to="/rider-onboarding-queue">
                 <Button variant="outline">
                   <Users className="h-4 w-4 mr-2" />
                   Onboarding Queue
                 </Button>
               </Link>
-              <Link to="/runsheets">
+              <Link to="/runsheet-management">
                 <Button>
                   <FileText className="h-4 w-4 mr-2" />
                   Manage Runsheets

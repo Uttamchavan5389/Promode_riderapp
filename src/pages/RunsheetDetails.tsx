@@ -40,7 +40,6 @@ import {
   Phone,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { StatusBadge } from "@/components/StatusBadge";
 
 const RunsheetDetails = () => {
   const { id } = useParams();
@@ -55,8 +54,8 @@ const RunsheetDetails = () => {
 
   // Dummy data
   const runsheetData = {
-    id: "RS-2025-001",
-    status: "in_progress",
+    id: id || "RS-2025-001",
+    status: "In Progress" as const,
     rider: { name: "Suresh Kumar", id: "R001", phone: "+91 98111 11111" },
     date: "2025-01-14",
     orders: [
@@ -99,12 +98,12 @@ const RunsheetDetails = () => {
     ],
   };
 
-  const expectedCOD = runsheetData.orders
-    .filter((o) => o.payment_mode === "COD" && o.delivery_status === "Delivered")
+  const expectedPrepaid = runsheetData.orders
+    .filter(o => o.payment_mode === "Online")
     .reduce((sum, o) => sum + o.amount, 0);
 
-  const expectedTotal = runsheetData.orders
-    .filter((o) => o.delivery_status === "Delivered")
+  const expectedCOD = runsheetData.orders
+    .filter(o => o.payment_mode === "COD")
     .reduce((sum, o) => sum + o.amount, 0);
 
   const handleMarkInvalid = (order: any) => {
@@ -112,11 +111,11 @@ const RunsheetDetails = () => {
     setInvalidOrderDialog(true);
   };
 
-  const handleSubmitInvalid = () => {
+  const handleSubmitInvalidOrder = () => {
     if (!invalidReason) {
       toast({
-        title: "Reason Required",
-        description: "Please select a reason for marking the order as invalid",
+        title: "Error",
+        description: "Please select a reason",
         variant: "destructive",
       });
       return;
@@ -124,8 +123,9 @@ const RunsheetDetails = () => {
 
     toast({
       title: "Order Marked Invalid",
-      description: `${selectedOrder.id} has been marked as invalid and moved to review queue`,
+      description: `${selectedOrder.id} has been marked as invalid`,
     });
+
     setInvalidOrderDialog(false);
     setInvalidReason("");
     setInvalidNotes("");
@@ -193,7 +193,7 @@ const RunsheetDetails = () => {
                 </div>
               </div>
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                In Progress
+                {runsheetData.status}
               </Badge>
             </div>
           </div>
@@ -231,12 +231,32 @@ const RunsheetDetails = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={order.payment_mode === "COD" ? "outline" : "secondary"}>
+                      <Badge 
+                        variant="outline"
+                        className={order.payment_mode === "COD" ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700"}
+                      >
                         {order.payment_mode}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={order.delivery_status as any} />
+                      <Badge
+                        variant={
+                          order.delivery_status === "Delivered"
+                            ? "default"
+                            : order.delivery_status === "Returned"
+                            ? "destructive"
+                            : "outline"
+                        }
+                        className={
+                          order.delivery_status === "Delivered"
+                            ? "bg-green-600"
+                            : order.delivery_status === "Pending"
+                            ? "bg-amber-600"
+                            : ""
+                        }
+                      >
+                        {order.delivery_status}
+                      </Badge>
                     </TableCell>
                     <TableCell className="font-semibold">₹{order.amount.toLocaleString()}</TableCell>
                     <TableCell>
@@ -298,54 +318,31 @@ const RunsheetDetails = () => {
             </div>
 
             {collectedAmount && expectedCOD !== parseFloat(collectedAmount) && (
-              <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                <span className="text-sm text-yellow-800">
-                  Difference: ₹{Math.abs(expectedCOD - parseFloat(collectedAmount)).toLocaleString()}
-                  {" - "}Please verify before proceeding
-                </span>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  <p className="font-medium text-amber-900">Collection Mismatch</p>
+                </div>
+                <p className="text-sm text-amber-700 mt-1">
+                  Difference: ₹{Math.abs(expectedCOD - parseFloat(collectedAmount || "0")).toLocaleString()}
+                </p>
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Summary Footer */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-4 gap-6 mb-6">
+            <div className="flex justify-between pt-4">
               <div>
-                <Label className="text-muted-foreground">Total Orders</Label>
-                <div className="text-xl font-bold mt-1">{runsheetData.orders.length}</div>
+                <p className="text-sm text-muted-foreground mb-1">Expected Prepaid</p>
+                <p className="text-lg font-bold text-green-600">₹{expectedPrepaid.toLocaleString()}</p>
               </div>
-              <div>
-                <Label className="text-muted-foreground">Expected Collection</Label>
-                <div className="text-xl font-bold mt-1">₹{expectedTotal.toLocaleString()}</div>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={handleSaveRunsheet}>
+                  Save
+                </Button>
+                <Button onClick={handleVerifyCollection}>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Verify Collection
+                </Button>
               </div>
-              <div>
-                <Label className="text-muted-foreground">Expected COD</Label>
-                <div className="text-xl font-bold mt-1">₹{expectedCOD.toLocaleString()}</div>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Collected</Label>
-                <div className="text-xl font-bold text-green-600 mt-1">
-                  ₹{collectedAmount ? parseFloat(collectedAmount).toLocaleString() : "0"}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => navigate(-1)}>
-                <XCircle className="h-4 w-4 mr-2" />
-                Close
-              </Button>
-              <Button variant="outline" onClick={handleSaveRunsheet}>
-                <Package className="h-4 w-4 mr-2" />
-                Save
-              </Button>
-              <Button onClick={handleVerifyCollection}>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Verify & Complete
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -357,15 +354,14 @@ const RunsheetDetails = () => {
           <DialogHeader>
             <DialogTitle>Mark Order as Invalid</DialogTitle>
             <DialogDescription>
-              {selectedOrder && `Order ID: ${selectedOrder.id}`}
+              Order: {selectedOrder?.id} - {selectedOrder?.customer_name}
             </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-4">
+          <div className="space-y-4 py-4">
             <div>
               <Label>Reason</Label>
               <Select value={invalidReason} onValueChange={setInvalidReason}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Select reason" />
                 </SelectTrigger>
                 <SelectContent>
@@ -377,22 +373,21 @@ const RunsheetDetails = () => {
                 </SelectContent>
               </Select>
             </div>
-
             <div>
-              <Label>Additional Notes</Label>
+              <Label>Notes</Label>
               <Textarea
-                placeholder="Enter any additional details..."
+                placeholder="Add additional notes..."
                 value={invalidNotes}
                 onChange={(e) => setInvalidNotes(e.target.value)}
+                className="mt-2"
               />
             </div>
-
-            <div className="flex gap-3 justify-end">
+            <div className="flex justify-end gap-3 pt-4">
               <Button variant="outline" onClick={() => setInvalidOrderDialog(false)}>
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleSubmitInvalid}>
-                <AlertTriangle className="h-4 w-4 mr-2" />
+              <Button variant="destructive" onClick={handleSubmitInvalidOrder}>
+                <XCircle className="h-4 w-4 mr-2" />
                 Mark Invalid
               </Button>
             </div>
