@@ -1,117 +1,148 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Search, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
-  UserPlus,
-  FileText,
-  CreditCard,
-  Building2,
-  ChevronLeft,
-  ChevronRight
-} from "lucide-react";
+import { Users, Search, Eye, CheckCircle, XCircle, UserX, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 
-// Dummy data for rider applications
-const riderApplications = [
-  {
-    id: "RA-001",
-    rider_name: "Rajesh Kumar",
-    contact_number: "9876543210",
-    alternate_contact: "9876543211",
-    vehicle_type: "2-Wheeler",
-    vehicle_registration: "DL01AB1234",
-    pincode: "110001",
-    full_address: "123, Main Street, Delhi",
-    date_of_birth: "1995-01-15",
-    referral_name: "Amit Singh",
-    referral_contact: "9876543212",
-    status: "pending_review",
-    created_at: "2025-01-10",
-    documents: [
-      { type: "aadhar_front", url: "/placeholder.svg", status: "pending" },
-      { type: "aadhar_back", url: "/placeholder.svg", status: "pending" },
-      { type: "pan_card", url: "/placeholder.svg", status: "pending" },
-      { type: "driving_license_front", url: "/placeholder.svg", status: "pending" },
-      { type: "driving_license_back", url: "/placeholder.svg", status: "pending" },
-      { type: "vehicle_image", url: "/placeholder.svg", status: "pending" },
-      { type: "rc_front", url: "/placeholder.svg", status: "pending" },
-      { type: "rc_back", url: "/placeholder.svg", status: "pending" },
-    ],
-    bank_details: {
-      bank_name: "State Bank of India",
-      account_holder_name: "Rajesh Kumar",
-      account_number: "12345678901234",
-      ifsc_code: "SBIN0001234",
-      verified: false
-    }
-  }
-];
+type RiderStatus = "Pending" | "Active" | "Inactive" | "Rejected";
+
+interface RiderApplication {
+  id: string;
+  rider_name: string;
+  rider_id: string;
+  mobile: string;
+  city: string;
+  vehicle_type: "2-Wheeler" | "3-Wheeler";
+  license_number: string;
+  aadhaar_number: string;
+  pan_card: string;
+  joining_date: string;
+  status: RiderStatus;
+  email?: string;
+  dob?: string;
+  address?: string;
+  emergency_contact?: string;
+}
 
 const RiderOnboardingQueue = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedApplication, setSelectedApplication] = useState<any>(null);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "pending" | "active" | "inactive" | "rejected">("all");
+  const [selectedRider, setSelectedRider] = useState<RiderApplication | null>(null);
+  const [viewDialog, setViewDialog] = useState(false);
 
-  const filteredApplications = riderApplications.filter(app =>
-    app.rider_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.contact_number.includes(searchQuery) ||
-    app.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Dummy data
+  const riders: RiderApplication[] = [
+    {
+      id: "1",
+      rider_name: "Rajesh Kumar",
+      rider_id: "RD001",
+      mobile: "+91 98111 11111",
+      city: "Delhi",
+      vehicle_type: "2-Wheeler",
+      license_number: "DL-01-12345678",
+      aadhaar_number: "1234-5678-9012",
+      pan_card: "ABCDE1234F",
+      joining_date: "2025-01-10",
+      status: "Pending",
+      dob: "1995-05-15",
+      address: "123 Main St, Delhi",
+      emergency_contact: "+91 98111 22222",
+    },
+    {
+      id: "2",
+      rider_name: "Suresh Kumar",
+      rider_id: "R001",
+      mobile: "+91 98111 11111",
+      city: "Delhi",
+      vehicle_type: "2-Wheeler",
+      license_number: "DL-01-AB-1234",
+      aadhaar_number: "2345-6789-0123",
+      pan_card: "FGHIJ5678K",
+      joining_date: "2025-01-05",
+      status: "Active",
+    },
+    {
+      id: "3",
+      rider_name: "Amit Verma",
+      rider_id: "RD003",
+      mobile: "+91 98111 33333",
+      city: "Mumbai",
+      vehicle_type: "3-Wheeler",
+      license_number: "MH-01-98765432",
+      aadhaar_number: "3456-7890-1234",
+      pan_card: "KLMNO9012P",
+      joining_date: "2025-01-12",
+      status: "Inactive",
+    },
+  ];
 
-  const handleApprove = () => {
-    toast({
-      title: "Rider Approved",
-      description: `${selectedApplication.rider_name} has been approved and added to active riders.`,
-    });
-    setSelectedApplication(null);
-    navigate("/rider-overview");
+  const filteredRiders = riders.filter((rider) => {
+    const matchesSearch =
+      rider.rider_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rider.rider_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rider.mobile.includes(searchQuery);
+
+    if (activeTab === "all") return matchesSearch;
+    return matchesSearch && rider.status.toLowerCase() === activeTab;
+  });
+
+  const handleViewRider = (rider: RiderApplication) => {
+    setSelectedRider(rider);
+    setViewDialog(true);
   };
 
-  const handleReject = () => {
-    if (!rejectionReason.trim()) {
-      toast({
-        title: "Rejection Reason Required",
-        description: "Please provide a reason for rejection",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const handleApprove = (riderId: string) => {
     toast({
-      title: "Application Rejected",
-      description: `${selectedApplication.rider_name}'s application has been rejected.`,
+      title: "Rider Approved",
+      description: `Rider ${riderId} has been activated`,
+    });
+    setViewDialog(false);
+  };
+
+  const handleReject = (riderId: string) => {
+    toast({
+      title: "Rider Rejected",
+      description: `Rider ${riderId} has been rejected`,
       variant: "destructive",
     });
-    setSelectedApplication(null);
-    setRejectionReason("");
+    setViewDialog(false);
+  };
+
+  const handleDeactivate = (riderId: string) => {
+    toast({
+      title: "Rider Deactivated",
+      description: `Rider ${riderId} has been deactivated`,
+    });
+    setViewDialog(false);
+  };
+
+  const getStatusBadgeVariant = (status: RiderStatus) => {
+    switch (status) {
+      case "Active":
+        return "default";
+      case "Pending":
+        return "secondary";
+      case "Inactive":
+        return "outline";
+      case "Rejected":
+        return "destructive";
+      default:
+        return "outline";
+    }
+  };
+
+  const stats = {
+    total: riders.length,
+    pending: riders.filter((r) => r.status === "Pending").length,
+    active: riders.filter((r) => r.status === "Active").length,
+    inactive: riders.filter((r) => r.status === "Inactive").length,
+    rejected: riders.filter((r) => r.status === "Rejected").length,
   };
 
   return (
@@ -121,252 +152,321 @@ const RiderOnboardingQueue = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Rider Onboarding Queue</h1>
-              <p className="text-sm text-muted-foreground">Review and approve new rider applications</p>
+              <p className="text-sm text-muted-foreground">Manage and review rider applications</p>
             </div>
-            <Badge variant="outline" className="text-lg px-4 py-2">
-              <UserPlus className="h-4 w-4 mr-2" />
-              {filteredApplications.length} Pending
-            </Badge>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Pending Applications</CardTitle>
-              <div className="relative w-64">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">All Riders</p>
+                  <p className="text-3xl font-bold text-foreground">{stats.total}</p>
+                </div>
+                <Users className="h-8 w-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Pending</p>
+                  <p className="text-3xl font-bold text-warning">{stats.pending}</p>
+                </div>
+                <Calendar className="h-8 w-8 text-warning opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Active</p>
+                  <p className="text-3xl font-bold text-success">{stats.active}</p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-success opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Inactive</p>
+                  <p className="text-3xl font-bold text-muted-foreground">{stats.inactive}</p>
+                </div>
+                <UserX className="h-8 w-8 text-muted-foreground opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Rejected</p>
+                  <p className="text-3xl font-bold text-destructive">{stats.rejected}</p>
+                </div>
+                <XCircle className="h-8 w-8 text-destructive opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search applications..."
+                  placeholder="Search by name, ID, or phone..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Application ID</TableHead>
-                  <TableHead>Rider Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Vehicle Type</TableHead>
-                  <TableHead>Pincode</TableHead>
-                  <TableHead>Applied On</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredApplications.map((application) => (
-                  <TableRow key={application.id}>
-                    <TableCell className="font-medium">{application.id}</TableCell>
-                    <TableCell>{application.rider_name}</TableCell>
-                    <TableCell>{application.contact_number}</TableCell>
-                    <TableCell>{application.vehicle_type}</TableCell>
-                    <TableCell>{application.pincode}</TableCell>
-                    <TableCell>{application.created_at}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                        Pending Review
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedApplication(application)}
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        Review
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-muted-foreground">
-                Showing {filteredApplications.length} application(s)
-              </p>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={currentPage === 1}>
-                  <ChevronLeft className="h-4 w-4" />
+              <div className="flex gap-2">
+                <Button
+                  variant={activeTab === "all" ? "default" : "outline"}
+                  onClick={() => setActiveTab("all")}
+                  size="sm"
+                >
+                  All
                 </Button>
-                <span className="text-sm">{currentPage}</span>
-                <Button variant="outline" size="sm">
-                  <ChevronRight className="h-4 w-4" />
+                <Button
+                  variant={activeTab === "pending" ? "default" : "outline"}
+                  onClick={() => setActiveTab("pending")}
+                  size="sm"
+                >
+                  Pending
+                </Button>
+                <Button
+                  variant={activeTab === "active" ? "default" : "outline"}
+                  onClick={() => setActiveTab("active")}
+                  size="sm"
+                >
+                  Active
+                </Button>
+                <Button
+                  variant={activeTab === "inactive" ? "default" : "outline"}
+                  onClick={() => setActiveTab("inactive")}
+                  size="sm"
+                >
+                  Inactive
+                </Button>
+                <Button
+                  variant={activeTab === "rejected" ? "default" : "outline"}
+                  onClick={() => setActiveTab("rejected")}
+                  size="sm"
+                >
+                  Rejected
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Riders Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Rider Applications</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Rider Name</TableHead>
+                  <TableHead>Rider ID</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>City</TableHead>
+                  <TableHead>Vehicle Type</TableHead>
+                  <TableHead>Joining Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRiders.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      No riders found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredRiders.map((rider) => (
+                    <TableRow key={rider.id}>
+                      <TableCell className="font-medium">{rider.rider_name}</TableCell>
+                      <TableCell>{rider.rider_id}</TableCell>
+                      <TableCell>{rider.mobile}</TableCell>
+                      <TableCell>{rider.city}</TableCell>
+                      <TableCell>{rider.vehicle_type}</TableCell>
+                      <TableCell>{rider.joining_date}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(rider.status)}>{rider.status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewRider(rider)}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          {rider.status === "Pending" && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleApprove(rider.rider_id)}
+                              >
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleReject(rider.rider_id)}
+                              >
+                                <XCircle className="h-3 w-3 mr-1" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          {rider.status === "Active" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeactivate(rider.rider_id)}
+                            >
+                              <UserX className="h-3 w-3 mr-1" />
+                              Deactivate
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </main>
 
-      {/* Review Dialog */}
-      <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      {/* View Rider Dialog */}
+      <Dialog open={viewDialog} onOpenChange={setViewDialog}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Review Rider Application</DialogTitle>
+            <DialogTitle>Rider Profile</DialogTitle>
             <DialogDescription>
-              Review all details and documents before approving or rejecting
+              {selectedRider?.rider_name} - {selectedRider?.rider_id}
             </DialogDescription>
           </DialogHeader>
-
-          {selectedApplication && (
-            <Tabs defaultValue="personal" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="personal">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Personal Details
-                </TabsTrigger>
-                <TabsTrigger value="documents">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Documents
-                </TabsTrigger>
-                <TabsTrigger value="bank">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Bank Details
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="personal" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+          {selectedRider && (
+            <div className="space-y-6">
+              {/* Personal Details */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-3">Personal Details</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">Rider Name</Label>
-                    <p className="font-medium">{selectedApplication.rider_name}</p>
+                    <p className="text-muted-foreground">Name</p>
+                    <p className="font-medium">{selectedRider.rider_name}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Date of Birth</Label>
-                    <p className="font-medium">{selectedApplication.date_of_birth}</p>
+                    <p className="text-muted-foreground">DOB</p>
+                    <p className="font-medium">{selectedRider.dob || "N/A"}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Contact Number</Label>
-                    <p className="font-medium">{selectedApplication.contact_number}</p>
+                    <p className="text-muted-foreground">Mobile</p>
+                    <p className="font-medium">{selectedRider.mobile}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Alternate Contact</Label>
-                    <p className="font-medium">{selectedApplication.alternate_contact}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">Full Address</Label>
-                    <p className="font-medium">{selectedApplication.full_address}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Pincode</Label>
-                    <p className="font-medium">{selectedApplication.pincode}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Vehicle Type</Label>
-                    <p className="font-medium">{selectedApplication.vehicle_type}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Vehicle Registration</Label>
-                    <p className="font-medium">{selectedApplication.vehicle_registration}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Referral Name</Label>
-                    <p className="font-medium">{selectedApplication.referral_name || "N/A"}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Referral Contact</Label>
-                    <p className="font-medium">{selectedApplication.referral_contact || "N/A"}</p>
+                    <p className="text-muted-foreground">Emergency Contact</p>
+                    <p className="font-medium">{selectedRider.emergency_contact || "N/A"}</p>
                   </div>
                 </div>
-              </TabsContent>
+              </div>
 
-              <TabsContent value="documents" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {selectedApplication.documents.map((doc: any, idx: number) => (
-                    <Card key={idx} className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <Label className="text-sm font-medium capitalize">
-                            {doc.type.replace(/_/g, " ")}
-                          </Label>
-                          <Badge 
-                            variant="outline" 
-                            className="ml-2 bg-warning/10 text-warning border-warning/20"
-                          >
-                            Pending
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="aspect-video bg-muted rounded-md flex items-center justify-center mb-3">
-                        <CreditCard className="h-12 w-12 text-muted-foreground" />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="flex-1">
-                          View Full
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="bank" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              {/* Employment Details */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-3">Employment Details</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">Bank Name</Label>
-                    <p className="font-medium">{selectedApplication.bank_details.bank_name}</p>
+                    <p className="text-muted-foreground">Rider ID</p>
+                    <p className="font-medium">{selectedRider.rider_id}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Account Holder Name</Label>
-                    <p className="font-medium">{selectedApplication.bank_details.account_holder_name}</p>
+                    <p className="text-muted-foreground">Joining Date</p>
+                    <p className="font-medium">{selectedRider.joining_date}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Account Number</Label>
-                    <p className="font-medium">{selectedApplication.bank_details.account_number}</p>
+                    <p className="text-muted-foreground">Vehicle Type</p>
+                    <p className="font-medium">{selectedRider.vehicle_type}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">IFSC Code</Label>
-                    <p className="font-medium">{selectedApplication.bank_details.ifsc_code}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">Verification Status</Label>
-                    <Badge variant="outline" className="ml-2 bg-warning/10 text-warning border-warning/20">
-                      Not Verified
-                    </Badge>
+                    <p className="text-muted-foreground">City/Zone</p>
+                    <p className="font-medium">{selectedRider.city}</p>
                   </div>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+
+              {/* Identity Documents */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-3">Identity Documents</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">License Number</p>
+                    <p className="font-medium">{selectedRider.license_number}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Aadhaar Number</p>
+                    <p className="font-medium">{selectedRider.aadhaar_number}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">PAN Card</p>
+                    <p className="font-medium">{selectedRider.pan_card}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={() => setViewDialog(false)}>
+                  Close
+                </Button>
+                {selectedRider.status === "Pending" && (
+                  <>
+                    <Button variant="default" onClick={() => handleApprove(selectedRider.rider_id)}>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Approve
+                    </Button>
+                    <Button variant="destructive" onClick={() => handleReject(selectedRider.rider_id)}>
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Reject
+                    </Button>
+                  </>
+                )}
+                {selectedRider.status === "Active" && (
+                  <Button variant="outline" onClick={() => handleDeactivate(selectedRider.rider_id)}>
+                    <UserX className="h-4 w-4 mr-2" />
+                    Deactivate
+                  </Button>
+                )}
+              </div>
+            </div>
           )}
-
-          <div className="border-t pt-4 space-y-4">
-            <div>
-              <Label>Admin Notes / Rejection Reason</Label>
-              <Textarea
-                placeholder="Enter notes or rejection reason..."
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                className="mt-2"
-              />
-            </div>
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setSelectedApplication(null)}>
-                Cancel
-              </Button>
-              <Button 
-                variant="destructive"
-                onClick={handleReject}
-                className="gap-2"
-              >
-                <XCircle className="h-4 w-4" />
-                Reject Application
-              </Button>
-              <Button onClick={handleApprove} className="gap-2">
-                <CheckCircle className="h-4 w-4" />
-                Approve & Onboard
-              </Button>
-            </div>
-          </div>
         </DialogContent>
       </Dialog>
     </div>

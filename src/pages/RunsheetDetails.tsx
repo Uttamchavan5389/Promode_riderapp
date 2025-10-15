@@ -51,6 +51,8 @@ const RunsheetDetails = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [invalidReason, setInvalidReason] = useState("");
   const [invalidNotes, setInvalidNotes] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
+  const [isClosed, setIsClosed] = useState(false);
 
   // Dummy data
   const runsheetData = {
@@ -147,16 +149,37 @@ const RunsheetDetails = () => {
     if (difference > 0) {
       toast({
         title: "Collection Mismatch",
-        description: `Difference of ₹${difference}. Please verify before proceeding.`,
+        description: `Difference of ₹${difference}. Verification completed with discrepancy.`,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Collection Verified",
+        description: `₹${collected} verified successfully`,
+      });
+    }
+
+    setIsVerified(true);
+  };
+
+  const handleCloseRunsheet = () => {
+    if (!isVerified) {
+      toast({
+        title: "Cannot Close",
+        description: "Please verify collection first",
         variant: "destructive",
       });
       return;
     }
 
+    setIsClosed(true);
     toast({
-      title: "Collection Verified",
-      description: `₹${collected} verified successfully`,
+      title: "Runsheet Closed",
+      description: "Runsheet has been closed successfully",
     });
+    
+    // Navigate back after a short delay
+    setTimeout(() => navigate(-1), 1500);
   };
 
   const handleSaveRunsheet = () => {
@@ -338,9 +361,22 @@ const RunsheetDetails = () => {
                 <Button variant="outline" onClick={handleSaveRunsheet}>
                   Save
                 </Button>
-                <Button onClick={handleVerifyCollection}>
+                <Button 
+                  onClick={handleVerifyCollection}
+                  disabled={isVerified || isClosed}
+                  className={isVerified ? "bg-green-600" : ""}
+                >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Verify Collection
+                  {isVerified ? "✓ Verified" : "Verify Collection"}
+                </Button>
+                <Button 
+                  variant="default"
+                  onClick={handleCloseRunsheet}
+                  disabled={!isVerified || isClosed}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  {isClosed ? "Closed" : "Close Runsheet"}
                 </Button>
               </div>
             </div>

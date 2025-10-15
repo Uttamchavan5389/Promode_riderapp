@@ -439,8 +439,8 @@ const RiderManagementDashboard = () => {
                       <Phone className="h-3 w-3 mr-1" />
                       Call
                     </Button>
-                    <Link to={`/rider/${rider.id}/runsheet`} className="flex-1">
-                      <Button size="sm" variant="secondary" className="w-full">
+                    <Link to={`/rider-runsheets/${rider.id}`} className="flex-1">
+                      <Button size="sm" variant="default" className="w-full">
                         <FileText className="h-3 w-3 mr-1" />
                         Runsheet
                       </Button>

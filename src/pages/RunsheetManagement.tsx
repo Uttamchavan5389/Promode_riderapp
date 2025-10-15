@@ -20,11 +20,19 @@ import { runsheets, orders } from "@/data/dummyData";
 
 const RunsheetManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"active" | "pending" | "invalid" | "cash-pending" | "completed">("active");
   
-  const filteredRunsheets = runsheets.filter(runsheet =>
-    runsheet.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    runsheet.rider_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredRunsheets = runsheets.filter(runsheet => {
+    const matchesSearch = runsheet.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      runsheet.rider_name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Filter by tab
+    if (activeTab === "active") return matchesSearch && runsheet.status === "In Transit";
+    if (activeTab === "completed") return matchesSearch && runsheet.status === "Completed";
+    if (activeTab === "pending") return matchesSearch && runsheet.status === "Created";
+    
+    return matchesSearch;
+  });
 
   // Calculate totals based on assigned orders
   const totalOrders = runsheets.reduce((sum, r) => sum + r.orders_assigned.length, 0);
@@ -117,11 +125,40 @@ const RunsheetManagement = () => {
           </Card>
         </div>
 
-        {/* Active Runsheets */}
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <Button
+            variant={activeTab === "active" ? "default" : "outline"}
+            onClick={() => setActiveTab("active")}
+            className="gap-2"
+          >
+            🟢 Active Runsheets
+          </Button>
+          <Button
+            variant={activeTab === "pending" ? "default" : "outline"}
+            onClick={() => setActiveTab("pending")}
+            className="gap-2"
+          >
+            🟡 Pending Verification
+          </Button>
+          <Button
+            variant={activeTab === "completed" ? "default" : "outline"}
+            onClick={() => setActiveTab("completed")}
+            className="gap-2"
+          >
+            ✅ Completed Runsheets
+          </Button>
+        </div>
+
+        {/* Runsheets List */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Active Runsheets</CardTitle>
+              <CardTitle>
+                {activeTab === "active" && "Active Runsheets"}
+                {activeTab === "pending" && "Pending Verification"}
+                {activeTab === "completed" && "Completed Runsheets"}
+              </CardTitle>
               <div className="flex gap-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
