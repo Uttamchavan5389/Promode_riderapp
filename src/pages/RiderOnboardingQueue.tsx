@@ -374,7 +374,7 @@ const RiderOnboardingQueue = () => {
               {selectedRider?.rider_name} - {selectedRider?.rider_id}
             </DialogDescription>
           </DialogHeader>
-          {selectedRider && (
+      {selectedRider && (
             <div className="space-y-6">
               {/* Personal Details */}
               <div>
@@ -395,6 +395,14 @@ const RiderOnboardingQueue = () => {
                   <div>
                     <p className="text-muted-foreground">Emergency Contact</p>
                     <p className="font-medium">{selectedRider.emergency_contact || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Email</p>
+                    <p className="font-medium">{selectedRider.email || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Address</p>
+                    <p className="font-medium">{selectedRider.address || "N/A"}</p>
                   </div>
                 </div>
               </div>
@@ -425,18 +433,48 @@ const RiderOnboardingQueue = () => {
               {/* Identity Documents */}
               <div>
                 <h3 className="font-semibold text-foreground mb-3">Identity Documents</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">License Number</p>
-                    <p className="font-medium">{selectedRider.license_number}</p>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">License Number</p>
+                      <p className="font-medium">{selectedRider.license_number}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Aadhaar Number</p>
+                      <p className="font-medium">{selectedRider.aadhaar_number}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">PAN Card</p>
+                      <p className="font-medium">{selectedRider.pan_card}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Aadhaar Number</p>
-                    <p className="font-medium">{selectedRider.aadhaar_number}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">PAN Card</p>
-                    <p className="font-medium">{selectedRider.pan_card}</p>
+                  
+                  {/* Document Upload Section */}
+                  <div className="border-t pt-4 mt-4">
+                    <h4 className="font-medium text-sm mb-3">Document Files</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <span className="text-sm">Aadhaar Card (Front & Back)</span>
+                        <Button size="sm" variant="outline">
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <span className="text-sm">PAN Card</span>
+                        <Button size="sm" variant="outline">
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <span className="text-sm">Driving License</span>
+                        <Button size="sm" variant="outline">
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

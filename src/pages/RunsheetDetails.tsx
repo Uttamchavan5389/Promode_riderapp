@@ -352,31 +352,35 @@ const RunsheetDetails = () => {
               </div>
             )}
 
-            <div className="flex justify-between pt-4">
+            <div className="flex justify-between items-end pt-4 border-t">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Expected Prepaid</p>
                 <p className="text-lg font-bold text-green-600">₹{expectedPrepaid.toLocaleString()}</p>
               </div>
+              
+              {/* 3 Buttons as requested: View Details, Verify Collection, Close Runsheet */}
               <div className="flex gap-3">
-                <Button variant="outline" onClick={handleSaveRunsheet}>
-                  Save
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate(-1)}
+                >
+                  View Details
                 </Button>
                 <Button 
                   onClick={handleVerifyCollection}
                   disabled={isVerified || isClosed}
-                  className={isVerified ? "bg-green-600" : ""}
+                  className={isVerified ? "bg-green-600 hover:bg-green-700" : ""}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   {isVerified ? "✓ Verified" : "Verify Collection"}
                 </Button>
                 <Button 
-                  variant="default"
+                  variant="destructive"
                   onClick={handleCloseRunsheet}
                   disabled={!isVerified || isClosed}
-                  className="bg-red-600 hover:bg-red-700"
                 >
                   <XCircle className="h-4 w-4 mr-2" />
-                  {isClosed ? "Closed" : "Close Runsheet"}
+                  {isClosed ? "Runsheet Closed" : "Close Runsheet"}
                 </Button>
               </div>
             </div>

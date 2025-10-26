@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 const menuItems = [
+  { title: "Rider Management", url: "/rider-management", icon: Users },
   { title: "Rider Overview", url: "/rider-overview", icon: Users },
   { title: "Runsheet Management", url: "/runsheet-management", icon: FileText },
   { title: "Rider Onboarding", url: "/rider-onboarding-queue", icon: UserPlus },

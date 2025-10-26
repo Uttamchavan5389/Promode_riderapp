@@ -143,7 +143,7 @@ const RiderManagementDashboard = () => {
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {/* KPI Cards */}
+        {/* KPI Cards - Fixed to remove duplicates */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
@@ -252,76 +252,6 @@ const RiderManagementDashboard = () => {
                 <div>
                   <p className="text-2xl font-bold text-foreground">{stats.offlineRiders}</p>
                   <p className="text-xs text-muted-foreground">Offline</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.activeRiders}</p>
-                  <p className="text-xs text-muted-foreground">Out for Delivery</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.availableRiders}</p>
-                  <p className="text-xs text-muted-foreground">Available</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                  <Package className="h-5 w-5 text-yellow-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.ordersOutForDelivery}</p>
-                  <p className="text-xs text-muted-foreground">Orders Out</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
-                  <DollarSign className="h-5 w-5 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">₹{stats.codOutstanding.toFixed(0)}</p>
-                  <p className="text-xs text-muted-foreground">COD Outstanding</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.openRunsheets}</p>
-                  <p className="text-xs text-muted-foreground">Open Runsheets</p>
                 </div>
               </div>
             </CardContent>
