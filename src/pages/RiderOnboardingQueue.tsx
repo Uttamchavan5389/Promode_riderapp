@@ -27,6 +27,10 @@ interface RiderApplication {
   dob?: string;
   address?: string;
   emergency_contact?: string;
+  bank_name?: string;
+  account_number?: string;
+  ifsc_code?: string;
+  account_holder_name?: string;
 }
 
 const RiderOnboardingQueue = () => {
@@ -53,6 +57,10 @@ const RiderOnboardingQueue = () => {
       dob: "1995-05-15",
       address: "123 Main St, Delhi",
       emergency_contact: "+91 98111 22222",
+      bank_name: "HDFC Bank",
+      account_number: "50200012345678",
+      ifsc_code: "HDFC0001234",
+      account_holder_name: "Rajesh Kumar",
     },
     {
       id: "2",
@@ -449,32 +457,79 @@ const RiderOnboardingQueue = () => {
                     </div>
                   </div>
                   
-                  {/* Document Upload Section */}
+                  {/* Document Upload/View Section */}
                   <div className="border-t pt-4 mt-4">
                     <h4 className="font-medium text-sm mb-3">Document Files</h4>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <span className="text-sm">Aadhaar Card (Front & Back)</span>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">Aadhaar Card</span>
+                          <Badge variant="outline" className="bg-green-50 text-green-700">Uploaded</Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            Upload New
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <span className="text-sm">PAN Card</span>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">PAN Card</span>
+                          <Badge variant="outline" className="bg-green-50 text-green-700">Uploaded</Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            Upload New
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <span className="text-sm">Driving License</span>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">Driving License</span>
+                          <Badge variant="outline" className="bg-green-50 text-green-700">Uploaded</Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            Upload New
+                          </Button>
+                        </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bank Details */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-3">Bank Account Details</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Bank Name</p>
+                    <p className="font-medium">{selectedRider.bank_name || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Account Holder Name</p>
+                    <p className="font-medium">{selectedRider.account_holder_name || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Account Number</p>
+                    <p className="font-medium">{selectedRider.account_number || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">IFSC Code</p>
+                    <p className="font-medium">{selectedRider.ifsc_code || "N/A"}</p>
                   </div>
                 </div>
               </div>

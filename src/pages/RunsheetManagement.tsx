@@ -20,7 +20,7 @@ import { runsheets, orders } from "@/data/dummyData";
 
 const RunsheetManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"active" | "pending" | "invalid" | "cash-pending" | "completed">("active");
+  const [activeTab, setActiveTab] = useState<"active" | "pending" | "invalid" | "cash-pending" | "completed" | "closed">("active");
   
   const filteredRunsheets = runsheets.filter(runsheet => {
     const matchesSearch = runsheet.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -30,6 +30,7 @@ const RunsheetManagement = () => {
     if (activeTab === "active") return matchesSearch && runsheet.status === "In Transit";
     if (activeTab === "completed") return matchesSearch && runsheet.status === "Completed";
     if (activeTab === "pending") return matchesSearch && runsheet.status === "Created";
+    if (activeTab === "closed") return matchesSearch && runsheet.status === "Completed"; // Completed = Closed
     
     return matchesSearch;
   });
@@ -148,6 +149,13 @@ const RunsheetManagement = () => {
           >
             ✅ Completed Runsheets
           </Button>
+          <Button
+            variant={activeTab === "closed" ? "default" : "outline"}
+            onClick={() => setActiveTab("closed")}
+            className="gap-2"
+          >
+            🔒 Closed Runsheets
+          </Button>
         </div>
 
         {/* Runsheets List */}
@@ -158,6 +166,7 @@ const RunsheetManagement = () => {
                 {activeTab === "active" && "Active Runsheets"}
                 {activeTab === "pending" && "Pending Verification"}
                 {activeTab === "completed" && "Completed Runsheets"}
+                {activeTab === "closed" && "Closed Runsheets"}
               </CardTitle>
               <div className="flex gap-2">
                 <div className="relative">
