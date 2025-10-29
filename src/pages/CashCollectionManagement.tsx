@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ import {
 import { Search, AlertTriangle, CheckCircle, DollarSign, Clock } from "lucide-react";
 
 const CashCollectionManagement = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
 
@@ -249,11 +251,20 @@ const CashCollectionManagement = () => {
 
                   {/* Actions */}
                   <div className="flex flex-col gap-2">
-                    <Button size="sm" className="whitespace-nowrap">
+                    <Button 
+                      size="sm" 
+                      className="whitespace-nowrap"
+                      onClick={() => navigate(`/cash-verification/${collection.id}`)}
+                    >
                       <CheckCircle className="h-3 w-3 mr-2" />
                       Verify
                     </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="whitespace-nowrap"
+                      onClick={() => navigate(`/collection-details/${collection.id}`)}
+                    >
                       Details
                     </Button>
                   </div>
