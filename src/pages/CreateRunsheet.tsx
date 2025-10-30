@@ -370,14 +370,15 @@ const CreateRunsheet = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {scannedOrders.map((order, index) => (
-                      <div key={order.id} className="flex items-start gap-3 p-4 rounded-lg border hover:border-primary/50 transition-colors">
+                     {scannedOrders.map((order, index) => (
+                      <div key={order.id} className="flex items-start gap-3 p-4 rounded-lg border hover:border-primary/50 transition-colors bg-card">
                         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                           <span className="text-xs font-bold text-primary">{index + 1}</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-mono text-sm font-medium text-foreground">{order.order_number}</p>
+                        <div className="flex-1 min-w-0 space-y-2">
+                          {/* Header Row */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-mono text-sm font-bold text-foreground">{order.order_number}</p>
                             <Badge variant={order.payment_mode === 'COD' ? 'secondary' : 'default'} className="text-xs">
                               {order.payment_mode}
                             </Badge>
@@ -385,12 +386,48 @@ const CreateRunsheet = () => {
                               {order.status}
                             </Badge>
                           </div>
-                          <p className="text-sm text-foreground">{order.customer_name}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-1">{order.address}</p>
-                          <div className="flex items-center gap-3 mt-2 text-xs">
-                            <span className="text-muted-foreground">{order.items.length} items</span>
+                          
+                          {/* Customer Details */}
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-foreground">Customer:</span>
+                              <span className="text-sm text-foreground">{order.customer_name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-foreground">Phone:</span>
+                              <span className="text-xs text-muted-foreground">{order.customer_phone}</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <span className="text-xs font-semibold text-foreground">Address:</span>
+                              <span className="text-xs text-muted-foreground">{order.address}</span>
+                            </div>
+                          </div>
+
+                          {/* Items List */}
+                          <div className="bg-muted/30 p-2 rounded space-y-1">
+                            <p className="text-xs font-semibold text-foreground mb-1">Items ({order.items.length}):</p>
+                            {order.items.map((item) => (
+                              <div key={item.id} className="flex justify-between items-center text-xs">
+                                <span className="text-muted-foreground">{item.product_name} x {item.quantity}</span>
+                                <span className="font-medium text-foreground">₹{item.subtotal}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Footer Info */}
+                          <div className="flex items-center justify-between pt-1 border-t">
+                            <div className="flex items-center gap-3 text-xs">
+                              <span className="text-muted-foreground">Zone: {order.zone}</span>
+                              <span className="text-muted-foreground">Slot: {order.delivery_slot}</span>
+                            </div>
                             <span className="font-bold text-primary">₹{order.total_amount}</span>
                           </div>
+                          
+                          {order.notes && (
+                            <div className="bg-warning/10 p-2 rounded border border-warning/20">
+                              <p className="text-xs text-warning font-medium">Note: {order.notes}</p>
+                            </div>
+                          )}
                         </div>
                         <Button 
                           variant="ghost" 

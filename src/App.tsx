@@ -32,6 +32,7 @@ import RiderOnboardingQueue from "./pages/RiderOnboardingQueue";
 import RiderRunsheets from "./pages/RiderRunsheets";
 import CashVerificationDetails from "./pages/CashVerificationDetails";
 import CollectionDetailsView from "./pages/CollectionDetailsView";
+import CloseRunsheet from "./pages/CloseRunsheet";
 
 const queryClient = new QueryClient();
 
@@ -60,7 +61,7 @@ const App = () => (
             <Route path="/rider-management" element={<RiderManagementDashboard />} />
             <Route path="/rider-onboarding" element={<RiderOnboarding />} />
             <Route path="/rider-onboarding-review" element={<RiderOnboardingReview />} />
-              <Route path="/rider-overview" element={<EnhancedRiderOverview />} />
+              <Route path="/rider-overview" element={<RiderOverview />} />
               <Route path="/rider-onboarding-queue" element={<RiderOnboardingQueue />} />
             <Route path="/runsheets/:id" element={<RunsheetDetails />} />
             <Route path="/rider-runsheets/:riderId" element={<RiderRunsheets />} />
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/cash-collection" element={<CashCollectionManagement />} />
             <Route path="/cash-verification/:id" element={<CashVerificationDetails />} />
             <Route path="/collection-details/:id" element={<CollectionDetailsView />} />
+            <Route path="/close-runsheet/:runsheetId" element={<CloseRunsheet />} />
             <Route path="/track" element={<CustomerTracking />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

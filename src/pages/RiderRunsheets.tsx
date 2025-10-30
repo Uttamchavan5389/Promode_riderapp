@@ -1,200 +1,236 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  ArrowLeft,
-  FileText,
-  Package,
-  IndianRupee,
-  Eye,
-  Calendar,
-} from "lucide-react";
-import { runsheets, orders } from "@/data/dummyData";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Package, DollarSign, TrendingUp, Calendar, MapPin } from "lucide-react";
+import { riders } from "@/data/dummyData";
+
+// Dummy runsheet data for a specific rider
+const getRiderRunsheets = (riderId: string) => {
+  return [
+    {
+      id: 'RS-2025-001',
+      date: '2025-01-10',
+      zone: 'Zone A',
+      status: 'Completed',
+      totalOrders: 8,
+      delivered: 8,
+      codExpected: 2400,
+      codCollected: 2400,
+      prepaidTotal: 1850,
+      completionRate: 100,
+    },
+    {
+      id: 'RS-2025-002',
+      date: '2025-01-09',
+      zone: 'Zone A',
+      status: 'Completed',
+      totalOrders: 10,
+      delivered: 9,
+      codExpected: 3200,
+      codCollected: 2900,
+      prepaidTotal: 2100,
+      completionRate: 90,
+    },
+    {
+      id: 'RS-2025-003',
+      date: '2025-01-08',
+      zone: 'Zone A',
+      status: 'Completed',
+      totalOrders: 12,
+      delivered: 12,
+      codExpected: 4100,
+      codCollected: 4100,
+      prepaidTotal: 2800,
+      completionRate: 100,
+    },
+  ];
+};
 
 const RiderRunsheets = () => {
   const { riderId } = useParams();
-  const navigate = useNavigate();
+  const rider = riders.find(r => r.id === riderId);
+  const runsheets = getRiderRunsheets(riderId || '');
 
-  // Get rider's runsheets (in real app, filter by rider ID)
-  const riderRunsheets = runsheets.filter((r) => r.rider_id === riderId);
+  const totalRunsheets = runsheets.length;
+  const totalDelivered = runsheets.reduce((sum, r) => sum + r.delivered, 0);
+  const totalOrders = runsheets.reduce((sum, r) => sum + r.totalOrders, 0);
+  const totalCODCollected = runsheets.reduce((sum, r) => sum + r.codCollected, 0);
+  const avgCompletionRate = runsheets.reduce((sum, r) => sum + r.completionRate, 0) / runsheets.length;
+
+  if (!rider) {
+    return <div className="p-6">Rider not found</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="bg-card border-b sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Rider Runsheets</h1>
-                <p className="text-sm text-muted-foreground">All runsheets assigned to this rider</p>
-              </div>
+    <div className="min-h-screen bg-muted/30 p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Link to="/rider-overview">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-foreground">Runsheet History</h1>
+          <p className="text-muted-foreground">{rider.name} - {rider.id}</p>
+        </div>
+      </div>
+
+      {/* Rider Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Runsheets</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              <span className="text-2xl font-bold text-foreground">{totalRunsheets}</span>
             </div>
-          </div>
-        </div>
-      </header>
+          </CardContent>
+        </Card>
 
-      <main className="container mx-auto px-6 py-8 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Delivered</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-success" />
+              <span className="text-2xl font-bold text-foreground">{totalDelivered}</span>
+              <span className="text-sm text-muted-foreground">/ {totalOrders}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">COD Collected</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-warning" />
+              <span className="text-2xl font-bold text-foreground">₹{totalCODCollected.toLocaleString()}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Avg Completion</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <span className="text-2xl font-bold text-foreground">{avgCompletionRate.toFixed(0)}%</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Runsheet List */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-foreground">All Runsheets</h2>
+        {runsheets.map((runsheet) => (
+          <Card key={runsheet.id}>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Runsheets</p>
-                  <p className="text-3xl font-bold text-foreground">{riderRunsheets.length}</p>
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Left: Runsheet Info */}
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Runsheet ID</p>
+                    <p className="font-mono font-bold text-foreground">{runsheet.id}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Date</p>
+                      <p className="text-sm font-medium text-foreground">{runsheet.date}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Zone</p>
+                      <Badge variant="outline" className="gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {runsheet.zone}
+                      </Badge>
+                    </div>
+                  </div>
+                  <Badge variant="default">{runsheet.status}</Badge>
                 </div>
-                <FileText className="h-8 w-8 text-primary opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Completed</p>
-                  <p className="text-3xl font-bold text-success">
-                    {riderRunsheets.filter((r) => r.status === "Completed").length}
-                  </p>
+                {/* Middle: Order Progress */}
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-muted-foreground">Order Progress</p>
+                      <p className="text-sm font-bold text-foreground">
+                        {runsheet.delivered} / {runsheet.totalOrders}
+                      </p>
+                    </div>
+                    <Progress value={runsheet.completionRate} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {runsheet.completionRate}% completion rate
+                    </p>
+                  </div>
+                  <Separator />
+                  <div className="text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Orders:</span>
+                      <span className="font-medium text-foreground">{runsheet.totalOrders}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Delivered:</span>
+                      <span className="font-medium text-success">{runsheet.delivered}</span>
+                    </div>
+                  </div>
                 </div>
-                <Package className="h-8 w-8 text-success opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">In Progress</p>
-                  <p className="text-3xl font-bold text-accent">
-                    {riderRunsheets.filter((r) => r.status === "In Transit").length}
-                  </p>
-                </div>
-                <Calendar className="h-8 w-8 text-accent opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total COD</p>
-                  <p className="text-2xl font-bold text-warning">
-                    ₹
-                    {riderRunsheets
-                      .reduce((sum, r) => {
-                        const runsheetOrders = r.orders_assigned
-                          .map((orderId) => orders.find((o) => o.id === orderId))
-                          .filter(Boolean);
-                        const codTotal = runsheetOrders
-                          .filter((o) => o?.payment_mode === "COD")
-                          .reduce((s, o) => s + (o?.total_amount || 0), 0);
-                        return sum + codTotal;
-                      }, 0)
-                      .toLocaleString()}
-                  </p>
-                </div>
-                <IndianRupee className="h-8 w-8 text-warning opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Runsheets List */}
-        <div className="space-y-4">
-          {riderRunsheets.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">No runsheets found for this rider</p>
-              </CardContent>
-            </Card>
-          ) : (
-            riderRunsheets.map((runsheet) => {
-              const runsheetOrders = runsheet.orders_assigned
-                .map((orderId) => orders.find((o) => o.id === orderId))
-                .filter(Boolean);
-              const totalOrders = runsheetOrders.length;
-              const deliveredOrders = runsheetOrders.filter((o) => o?.status === "Delivered").length;
-              const progress = totalOrders > 0 ? (deliveredOrders / totalOrders) * 100 : 0;
-              const prepaidTotal = runsheetOrders
-                .filter((o) => o?.payment_mode === "Online")
-                .reduce((sum, o) => sum + (o?.total_amount || 0), 0);
-              const codTotal = runsheetOrders
-                .filter((o) => o?.payment_mode === "COD")
-                .reduce((sum, o) => sum + (o?.total_amount || 0), 0);
-
-              return (
-                <Card key={runsheet.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between gap-6">
-                      {/* Runsheet Info */}
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <FileText className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-lg font-semibold text-foreground">{runsheet.id}</h3>
-                            <Badge variant={runsheet.status === "In Transit" ? "default" : "outline"}>
-                              {runsheet.status}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">Date: {runsheet.run_date}</p>
-                          <p className="text-sm text-muted-foreground">Zone: {runsheet.route_zone}</p>
-                        </div>
+                {/* Middle-Right: Collection Details */}
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Collection Details</p>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">COD Expected:</span>
+                        <span className="font-medium text-foreground">₹{runsheet.codExpected}</span>
                       </div>
-
-                      {/* Progress */}
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-2">Order Progress</p>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">
-                              Delivered: {deliveredOrders}/{totalOrders}
-                            </span>
-                            <span className="font-medium text-foreground">{Math.round(progress)}%</span>
-                          </div>
-                          <Progress value={progress} className="h-2" />
-                        </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">COD Collected:</span>
+                        <span className="font-bold text-warning">₹{runsheet.codCollected}</span>
                       </div>
-
-                      {/* Financial */}
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground mb-1">Prepaid:</p>
-                        <p className="text-lg font-bold text-success mb-2">₹{prepaidTotal.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground mb-1">COD:</p>
-                        <p className="text-lg font-bold text-warning">₹{codTotal.toLocaleString()}</p>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Prepaid:</span>
+                        <span className="font-medium text-success">₹{runsheet.prepaidTotal}</span>
                       </div>
-
-                      {/* Actions */}
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-2"
-                          onClick={() => navigate(`/runsheets/${runsheet.id}`)}
-                        >
-                          <Eye className="h-3 w-3" />
-                          View Details
-                        </Button>
+                      <Separator />
+                      <div className="flex justify-between text-sm">
+                        <span className="font-medium text-foreground">Total:</span>
+                        <span className="font-bold text-primary">
+                          ₹{runsheet.codCollected + runsheet.prepaidTotal}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
-        </div>
-      </main>
+                  </div>
+                </div>
+
+                {/* Right: Actions */}
+                <div className="flex flex-col gap-2 justify-center">
+                  <Link to={`/runsheets/${runsheet.id}`}>
+                    <Button variant="outline" className="w-full">
+                      View Details
+                    </Button>
+                  </Link>
+                  <Button variant="ghost" size="sm">
+                    Download Report
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };

@@ -261,10 +261,12 @@ const RunsheetManagement = () => {
                             View Details
                           </Button>
                         </Link>
-                        <Button size="sm" variant="default" className="gap-2">
-                          <XCircle className="h-3 w-3" />
-                          Close Runsheet
-                        </Button>
+                        <Link to={`/close-runsheet/${runsheet.id}`}>
+                          <Button size="sm" variant="default" className="w-full gap-2">
+                            <XCircle className="h-3 w-3" />
+                            Close Runsheet
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </div>

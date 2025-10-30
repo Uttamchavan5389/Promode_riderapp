@@ -1,8 +1,16 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -10,285 +18,277 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { riders } from "@/data/dummyData";
-import { Link } from "react-router-dom";
-import {
+import { 
+  Users, 
+  Truck, 
+  UserCheck, 
+  UserX, 
+  Package, 
+  Clock, 
+  CheckCircle, 
+  AlertCircle,
+  DollarSign,
   Search,
   Phone,
   MapPin,
-  TrendingUp,
-  Clock,
-  Package,
-  DollarSign,
+  Eye,
   FileText,
-  Users,
-  Activity,
+  Wallet
 } from "lucide-react";
+import { riders } from "@/data/dummyData";
+import { Link } from "react-router-dom";
+import { KPICard } from "@/components/KPICard";
 
 const RiderOverview = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All Status");
-  const [zoneFilter, setZoneFilter] = useState("All Zones");
-  const [vehicleFilter, setVehicleFilter] = useState("All Vehicles");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const activeRiders = riders.filter((r) => r.current_status === "On Trip" || r.current_status === "Busy");
-  const availableRiders = riders.filter((r) => r.current_status === "Available");
-  const totalOrders = riders.reduce((sum, r) => sum + r.orders_out_for_delivery, 0);
-  const totalCOD = riders.reduce((sum, r) => sum + r.cod_outstanding, 0);
+  // Calculate KPIs
+  const totalRiders = riders.length;
+  const activeRiders = riders.filter(r => r.active).length;
+  const onDutyRiders = riders.filter(r => r.current_status === 'On Trip' || r.current_status === 'Busy').length;
+  const offlineRiders = riders.filter(r => r.current_status === 'Offline').length;
+  const outForDelivery = riders.reduce((sum, r) => sum + r.orders_out_for_delivery, 0);
+  const idleRiders = riders.filter(r => r.current_status === 'Available').length;
+  const completedToday = riders.reduce((sum, r) => sum + r.orders_delivered_today, 0);
+  const pendingCash = riders.reduce((sum, r) => sum + r.cod_outstanding, 0);
 
-  const filteredRiders = riders.filter((rider) => {
-    const matchesSearch =
-      rider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rider.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rider.phone.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "All Status" || rider.current_status === statusFilter;
-    const matchesZone = zoneFilter === "All Zones";
-    const matchesVehicle = vehicleFilter === "All Vehicles" || rider.vehicle_type === vehicleFilter;
-    return matchesSearch && matchesStatus && matchesZone && matchesVehicle;
+  // Filter riders
+  const filteredRiders = riders.filter(rider => {
+    const matchesSearch = rider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         rider.phone.includes(searchQuery) ||
+                         rider.id.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && rider.active) ||
+                         (statusFilter === 'on-trip' && rider.current_status === 'On Trip') ||
+                         (statusFilter === 'available' && rider.current_status === 'Available') ||
+                         (statusFilter === 'offline' && rider.current_status === 'Offline');
+    
+    return matchesSearch && matchesStatus;
   });
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      "On Trip": "default",
-      Available: "secondary",
-      Busy: "outline",
-      Offline: "destructive",
-    };
-    return variants[status as keyof typeof variants] || "outline";
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Available': return 'bg-success/10 text-success border-success/20';
+      case 'On Trip': return 'bg-primary/10 text-primary border-primary/20';
+      case 'Busy': return 'bg-warning/10 text-warning border-warning/20';
+      case 'Offline': return 'bg-muted text-muted-foreground border-muted';
+      default: return 'bg-muted text-muted-foreground';
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <h1 className="text-2xl font-bold text-foreground">Rider Overview</h1>
-          <p className="text-sm text-muted-foreground">Monitor and manage delivery riders in real-time</p>
+    <div className="min-h-screen bg-muted/30 p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Rider Overview</h1>
+          <p className="text-muted-foreground">Monitor and manage delivery riders in real-time</p>
         </div>
-      </header>
+        <Link to="/rider-onboarding-queue">
+          <Button>
+            <Users className="h-4 w-4 mr-2" />
+            View Onboarding Queue
+          </Button>
+        </Link>
+      </div>
 
-      <main className="container mx-auto px-6 py-8">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Riders</p>
-                  <p className="text-2xl font-bold text-foreground">{riders.length}</p>
-                </div>
-                <Users className="h-8 w-8 text-primary opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard
+          title="Total Riders"
+          value={totalRiders}
+          icon={Users}
+          trend="+2 this month"
+          variant="default"
+        />
+        <KPICard
+          title="Active Riders"
+          value={activeRiders}
+          icon={UserCheck}
+          subtitle={`${offlineRiders} offline`}
+          variant="success"
+        />
+        <KPICard
+          title="On Duty"
+          value={onDutyRiders}
+          icon={Truck}
+          subtitle={`${idleRiders} idle`}
+          variant="primary"
+        />
+        <KPICard
+          title="Out for Delivery"
+          value={outForDelivery}
+          icon={Package}
+          subtitle="orders in transit"
+          variant="warning"
+        />
+      </div>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Active Riders</p>
-                  <p className="text-2xl font-bold text-green-600">{activeRiders.length}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-600 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard
+          title="Completed Today"
+          value={completedToday}
+          icon={CheckCircle}
+          trend="+18% from yesterday"
+          variant="success"
+        />
+        <KPICard
+          title="Pending Cash"
+          value={`₹${pendingCash.toLocaleString()}`}
+          icon={DollarSign}
+          subtitle="COD outstanding"
+          variant="warning"
+        />
+        <KPICard
+          title="Idle Riders"
+          value={idleRiders}
+          icon={Clock}
+          subtitle="waiting for runsheet"
+          variant="default"
+        />
+        <KPICard
+          title="Delayed"
+          value={2}
+          icon={AlertCircle}
+          subtitle="needs attention"
+          variant="destructive"
+        />
+      </div>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Available</p>
-                  <p className="text-2xl font-bold text-blue-600">{availableRiders.length}</p>
-                </div>
-                <Clock className="h-8 w-8 text-blue-600 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Orders Out</p>
-                  <p className="text-2xl font-bold text-orange-600">{totalOrders}</p>
-                </div>
-                <Package className="h-8 w-8 text-orange-600 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">COD Outstanding</p>
-                  <p className="text-2xl font-bold text-amber-600">₹{totalCOD.toLocaleString()}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-amber-600 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Open Runsheets</p>
-                  <p className="text-2xl font-bold text-foreground">8</p>
-                </div>
-                <FileText className="h-8 w-8 text-primary opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
+      {/* Filters & Search */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <CardTitle>Rider List</CardTitle>
+            <div className="flex items-center gap-3 flex-1 max-w-2xl">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name, ID, phone..."
+                  placeholder="Search by name, phone, or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue />
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Filter Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Status">All Status</SelectItem>
-                  <SelectItem value="On Trip">On Trip</SelectItem>
-                  <SelectItem value="Available">Available</SelectItem>
-                  <SelectItem value="Busy">Busy</SelectItem>
-                  <SelectItem value="Offline">Offline</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={zoneFilter} onValueChange={setZoneFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All Zones">All Zones</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={vehicleFilter} onValueChange={setVehicleFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All Vehicles">All Vehicles</SelectItem>
-                  <SelectItem value="Two-Wheeler">Two-Wheeler</SelectItem>
-                  <SelectItem value="Three-Wheeler">Three-Wheeler</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="on-trip">On Trip</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="offline">Offline</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Active Riders */}
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-foreground">Active Riders ({activeRiders.length})</h2>
-        </div>
-
-        <div className="grid gap-4">
-          {filteredRiders.map((rider) => (
-            <Card key={rider.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Rider Info */}
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                      {rider.name.split(" ").map((n) => n[0]).join("")}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Rider ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Zone</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Active Runsheet</TableHead>
+                <TableHead>Orders Assigned</TableHead>
+                <TableHead>COD Outstanding</TableHead>
+                <TableHead>Delivered Today</TableHead>
+                <TableHead>Last Update</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredRiders.map((rider) => (
+                <TableRow key={rider.id}>
+                  <TableCell className="font-mono font-medium">{rider.id}</TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium text-foreground">{rider.name}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {rider.phone}
+                      </p>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-bold text-foreground">{rider.name}</h3>
-                        <Badge variant={getStatusBadge(rider.current_status) as any}>
-                          {rider.current_status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-1">{rider.id}</p>
-                      <div className="flex flex-wrap gap-4 text-sm">
-                        <div className="flex items-center gap-1">
-                          <Phone className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-muted-foreground">{rider.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Activity className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-muted-foreground">{rider.vehicle_type}</span>
-                        </div>
-                      </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {rider.zone}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(rider.current_status)}>
+                      {rider.current_status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {rider.current_runsheet_id ? (
+                      <Link to={`/runsheets/${rider.current_runsheet_id}`}>
+                        <Button variant="link" size="sm" className="font-mono p-0 h-auto">
+                          {rider.current_runsheet_id}
+                        </Button>
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-primary" />
+                      <span className="font-medium">{rider.orders_out_for_delivery}</span>
                     </div>
-                  </div>
-
-                  {/* Current Assignment */}
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-2">Current Runsheet</p>
-                    <p className="font-medium text-foreground mb-1">RS-2025-001</p>
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Assigned: </span>
-                        <span className="font-medium text-foreground">{rider.orders_out_for_delivery + rider.orders_pending_pickup}</span>
-                      </div>
-                      <div>
-                        <span className="text-green-600">Delivered: </span>
-                        <span className="font-medium text-green-600">{rider.orders_delivered_today}</span>
-                      </div>
-                      <div>
-                        <span className="text-orange-600">Pending: </span>
-                        <span className="font-medium text-orange-600">{rider.orders_out_for_delivery}</span>
-                      </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className={`font-medium ${rider.cod_outstanding > 0 ? 'text-warning' : 'text-muted-foreground'}`}>
+                      ₹{rider.cod_outstanding.toLocaleString()}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-success" />
+                      <span className="font-medium">{rider.orders_delivered_today}</span>
                     </div>
-                  </div>
-
-                  {/* Location */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">Sector 21, Gurgaon</p>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(rider.last_seen).toLocaleTimeString()}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="icon" title="View Details">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Link to={`/rider-runsheets/${rider.id}`}>
+                        <Button variant="ghost" size="icon" title="Runsheet History">
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" size="icon" title="Collections">
+                        <Wallet className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-3">2 mins ago</p>
-                  </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
-                  {/* Performance */}
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-2">Delivery Rate:</p>
-                    <p className="text-2xl font-bold text-green-600">{rider.delivery_success_rate.toFixed(0)}%</p>
-                    <p className="text-xs text-muted-foreground">Avg Time: {rider.avg_delivery_time_minutes} mins</p>
-                    <p className="text-sm text-amber-600 font-medium mt-1">COD Pending: ₹{rider.cod_outstanding.toLocaleString()}</p>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-col gap-2">
-                    <Button size="sm" variant="outline" className="whitespace-nowrap">
-                      <Phone className="h-3 w-3 mr-2" />
-                      Call
-                    </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap">
-                      <MapPin className="h-3 w-3 mr-2" />
-                      Track
-                    </Button>
-                    <Button size="sm" className="whitespace-nowrap">
-                      <FileText className="h-3 w-3 mr-2" />
-                      Runsheet
-                    </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap">
-                      Reassign
-                    </Button>
-                    <Button size="sm" variant="destructive" className="whitespace-nowrap">
-                      Suspend Rider
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </main>
+          {filteredRiders.length === 0 && (
+            <div className="text-center py-12">
+              <UserX className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">No riders found</p>
+              <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

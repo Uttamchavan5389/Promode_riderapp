@@ -7,9 +7,11 @@ interface KPICardProps {
   icon: LucideIcon;
   trend?: string;
   trendUp?: boolean;
+  subtitle?: string;
+  variant?: 'default' | 'success' | 'primary' | 'warning' | 'destructive';
 }
 
-export const KPICard = ({ title, value, icon: Icon, trend, trendUp }: KPICardProps) => {
+export const KPICard = ({ title, value, icon: Icon, trend, trendUp, subtitle }: KPICardProps) => {
   return (
     <Card className="transition-all hover:shadow-md">
       <CardContent className="p-6">
@@ -21,6 +23,9 @@ export const KPICard = ({ title, value, icon: Icon, trend, trendUp }: KPICardPro
               <p className={`text-sm mt-2 ${trendUp ? 'text-primary' : 'text-destructive'}`}>
                 {trendUp ? '↑' : '↓'} {trend}
               </p>
+            )}
+            {subtitle && (
+              <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
             )}
           </div>
           <div className="rounded-full p-3 bg-primary/10">
