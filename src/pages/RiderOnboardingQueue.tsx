@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ interface RiderApplication {
 }
 
 const RiderOnboardingQueue = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "pending" | "active" | "inactive" | "rejected">("all");
@@ -327,10 +329,10 @@ const RiderOnboardingQueue = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleViewRider(rider)}
+                            onClick={() => navigate(`/rider-onboarding-review?id=${rider.id}`)}
                           >
                             <Eye className="h-3 w-3 mr-1" />
-                            View
+                            View Details
                           </Button>
                           {rider.status === "Pending" && (
                             <>
